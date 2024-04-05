@@ -7,3 +7,6 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: create-drop
+springdoc:
+  api-docs:
+    path: /api-docs

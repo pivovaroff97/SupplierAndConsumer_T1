@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -15,27 +16,34 @@ import java.util.NoSuchElementException;
 public class CustomExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<Object> handleEntityNotFound(
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ApiError> handleEntityNotFound(
             NoSuchElementException exception) {
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, exception.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+        return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({NoResourceFoundException.class,
             MethodArgumentNotValidException.class,
             MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<Object> handleNoHandlerFound(Exception exception) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiError> handleNoHandlerFound(Exception exception) {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, exception.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+        return ResponseEntity
+                .badRequest()
+                .body(apiError);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleException(
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<ApiError> handleException(
             Exception exception) {
         ApiError apiError = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 exception.getLocalizedMessage(),
                 List.of(exception.getClass().getName(), "error occurred"));
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+        return ResponseEntity
+                .internalServerError()
+                .body(apiError);
     }
 }
